@@ -11,7 +11,7 @@ console.log("NEXT_PUBLIC_SUPABASE_ANON_KEY from env:", !!process.env.NEXT_PUBLIC
 
 // FIX: Use regular env vars (not NEXT_PUBLIC_) for API routes
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Log for debugging (remove in production)
 if (!supabaseUrl || !supabaseKey) {
