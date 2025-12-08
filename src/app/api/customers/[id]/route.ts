@@ -9,10 +9,6 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUP
 // Log for debugging (remove in production)
 if (!supabaseUrl || !supabaseKey) {
   console.error("Missing Supabase environment variables");
-  console.log("SUPABASE_URL exists:", !!process.env.SUPABASE_URL);
-  console.log("NEXT_PUBLIC_SUPABASE_URL exists:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log("SUPABASE_ANON_KEY exists:", !!process.env.SUPABASE_ANON_KEY);
-  console.log("NEXT_PUBLIC_SUPABASE_ANON_KEY exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
 const supabase = createClient(
@@ -23,9 +19,9 @@ const supabase = createClient(
 // GET /api/customers/[id]  -> used by your receipt page
 export async function GET(
   _req: Request,
-  context: { params: { id: string } }  // FIXED: No Promise wrapper
+  context: { params: Promise<{ id: string }> }  // FIXED: Use Promise
 ) {
-  const { id } = context.params;  // FIXED: No await needed
+  const { id } = await context.params;  // FIXED: Await the Promise
 
   console.log("GET request for customer ID:", id);
 
@@ -58,10 +54,10 @@ export async function GET(
 // DELETE /api/customers/[id]
 export async function DELETE(
   _req: Request,
-  context: { params: { id: string } }  // FIXED: No Promise wrapper
+  context: { params: Promise<{ id: string }> }  // FIXED: Use Promise
 ) {
   try {
-    const { id } = context.params;  // FIXED: No await needed
+    const { id } = await context.params;  // FIXED: Await the Promise
 
     console.log("=== DELETE ATTEMPT START ===");
     console.log("Customer ID:", id);
@@ -110,9 +106,9 @@ export async function DELETE(
 // PUT /api/customers/[id]
 export async function PUT(
   req: Request,
-  context: { params: { id: string } }  // FIXED: No Promise wrapper
+  context: { params: Promise<{ id: string }> }  // FIXED: Use Promise
 ) {
-  const { id } = context.params;  // FIXED: No await needed
+  const { id } = await context.params;  // FIXED: Await the Promise
 
   console.log("PUT request for customer ID:", id);
 
