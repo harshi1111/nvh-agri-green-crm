@@ -98,8 +98,6 @@ export async function DELETE(
 
     console.log("=== DELETE ATTEMPT START ===");
     console.log("Customer ID:", id);
-    console.log("Supabase URL:", supabaseUrl ? "Set" : "Missing");
-    console.log("Supabase Key:", supabaseKey ? "Set" : "Missing");
 
     if (!id) {
       console.log("ERROR: No ID provided");
@@ -109,21 +107,51 @@ export async function DELETE(
       );
     }
 
-    console.log("Calling Supabase delete...");
-    const { error } = await supabase
+    // 1. First check if customer has any payments
+    console.log("Checking if customer has payments...");
+    const { data: payments, error: checkError } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("customer_id", id) // Use your actual foreign key column name
+      .limit(1);
+
+    if (checkError) {
+      console.error("Error checking payments:", checkError);
+      return NextResponse.json(
+        { error: "Error checking customer's payments" },
+        { status: 500 }
+      );
+    }
+
+    // 2. If customer has payments, BLOCK deletion
+    if (payments && payments.length > 0) {
+      console.log("Customer has payments, blocking deletion");
+      return NextResponse.json(
+        { 
+          error: "Cannot delete customer with existing payments. " +
+                 "Please delete or reassign payments first."
+        },
+        { status: 400 } // 400 Bad Request (client error)
+      );
+    }
+
+    console.log("No payments found, deleting customer...");
+
+    // 3. Delete customer (only if no payments)
+    const { error: customerError } = await supabase
       .from("customers")
       .delete()
       .eq("id", id);
 
-    if (error) {
+    if (customerError) {
       console.error("SUPABASE DELETE ERROR:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
+        message: customerError.message,
+        details: customerError.details,
+        hint: customerError.hint,
+        code: customerError.code
       });
       return NextResponse.json(
-        { error: "Failed to delete customer: " + error.message },
+        { error: "Failed to delete customer: " + customerError.message },
         { status: 500 }
       );
     }
