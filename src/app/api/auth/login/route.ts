@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(req: Request) {
@@ -17,20 +17,32 @@ export async function POST(req: Request) {
       );
     }
 
+    console.log("LOGIN ATTEMPT:", { email, password });
+    console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    console.log("SUPABASE RESPONSE:", { 
+      error: error?.message, 
+      hasSession: !!data?.session,
+      user: data?.user?.email 
+    });
+
     if (error || !data.session) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { 
+          error: "Invalid email or password",
+          debug: error?.message || "No session created"
+        },
         { status: 401 }
       );
     }
 
     return NextResponse.json(
-      { success: true, redirectTo: "/customers" },
+      { success: true, redirectTo: "/dashboard" },
       { status: 200 }
     );
   } catch (err) {
@@ -40,4 +52,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
+} 

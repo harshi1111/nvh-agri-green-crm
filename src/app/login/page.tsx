@@ -13,6 +13,8 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    console.log("🔍 LOGIN STARTING:", { email, password });
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -21,15 +23,28 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
+      console.log("🔍 API RESPONSE:", {
+        status: res.status,
+        ok: res.ok,
+        data: data,
+        redirectTo: data.redirectTo
+      });
 
       if (!res.ok) {
         setError(data.error ?? "Login failed");
+        console.log("🔍 LOGIN FAILED:", data.error);
       } else {
         const redirectTo = (data.redirectTo as string) ?? "/customers";
-        window.location.href = redirectTo;
+        console.log("🔍 REDIRECTING TO:", redirectTo);
+        console.log("🔍 Current URL:", window.location.href);
+        
+        // Try different redirect methods
+        setTimeout(() => {
+          window.location.assign(redirectTo);
+        }, 100);
       }
     } catch (err) {
-      console.error("login error", err);
+      console.error("🔍 LOGIN ERROR:", err);
       setError("Unexpected error");
     } finally {
       setLoading(false);
