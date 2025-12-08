@@ -42,16 +42,9 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-5xl space-y-8">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold">CRM Dashboard</h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Overview of customers and payments.
-            </p>
-          </div>
-        </header>
+    <main className="p-6">
+      <div className="w-full max-w-5xl mx-auto space-y-8">
+        {/* REMOVED THE HEADER SECTION - Sidebar handles navigation now */}
 
         {/* Top stats cards */}
         <section className="grid gap-4 md:grid-cols-3">
@@ -83,13 +76,16 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Quick links */}
+        {/* Quick links - Updated to match sidebar styling */}
         <section className="grid gap-4 md:grid-cols-2">
           <a
             href="/customers"
-            className="rounded-xl bg-slate-900/80 border border-slate-800 p-4 shadow hover:border-emerald-500 transition-colors"
+            className="rounded-xl bg-slate-900/80 border border-slate-800 p-4 shadow hover:border-emerald-500 transition-colors hover:bg-slate-800/60"
           >
-            <h2 className="text-lg font-semibold mb-1">Manage customers</h2>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-xl">👥</span>
+              <h2 className="text-lg font-semibold">Manage customers</h2>
+            </div>
             <p className="text-sm text-slate-400">
               Add and view customer records with Aadhaar last-4.
             </p>
@@ -97,13 +93,43 @@ export default function DashboardPage() {
 
           <a
             href="/payments"
-            className="rounded-xl bg-slate-900/80 border border-slate-800 p-4 shadow hover:border-emerald-500 transition-colors"
+            className="rounded-xl bg-slate-900/80 border border-slate-800 p-4 shadow hover:border-emerald-500 transition-colors hover:bg-slate-800/60"
           >
-            <h2 className="text-lg font-semibold mb-1">Record payments</h2>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-xl">💰</span>
+              <h2 className="text-lg font-semibold">Record payments</h2>
+            </div>
             <p className="text-sm text-slate-400">
               Link payments to customers and track revenue.
             </p>
           </a>
+        </section>
+
+        {/* Additional links section */}
+        <section className="grid gap-4 md:grid-cols-2">
+          <a
+            href="/archive"
+            className="rounded-xl bg-slate-900/80 border border-slate-800 p-4 shadow hover:border-amber-500 transition-colors hover:bg-slate-800/60"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-xl">📁</span>
+              <h2 className="text-lg font-semibold">View archive</h2>
+            </div>
+            <p className="text-sm text-slate-400">
+              Restore archived customers or review past records.
+            </p>
+          </a>
+
+          <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-4 shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-xl">📊</span>
+              <h2 className="text-lg font-semibold">Reports</h2>
+            </div>
+            <p className="text-sm text-slate-400">
+              Generate payment reports and customer summaries.
+              <span className="text-xs text-slate-500 block mt-1">(Coming soon)</span>
+            </p>
+          </div>
         </section>
       </div>
     </main>
