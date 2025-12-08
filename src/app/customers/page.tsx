@@ -18,6 +18,8 @@ type Customer = {
   address: string | null;
   aadhaar_last4: string | null;
   created_at: string;
+  is_archived?: boolean; // Added for archive feature
+  archived_at?: string;  // Added for archive feature
 };
 
 export default function CustomersPage() {
@@ -75,7 +77,9 @@ export default function CustomersPage() {
       setCustomersLoading(true);
       const res = await fetch("/api/customers");
       const data = await res.json();
-      setCustomers(data.items as Customer[]);
+      // Filter out archived customers on frontend too (just in case)
+      const activeCustomers = data.items.filter((c: Customer) => !c.is_archived);
+      setCustomers(activeCustomers as Customer[]);
     } catch (err) {
       console.error("fetch customers error", err);
     } finally {
@@ -160,27 +164,29 @@ export default function CustomersPage() {
     }
   }
 
-  async function handleDelete(id: string, name: string) {
+  async function handleArchive(id: string, name: string) {
     const ok = window.confirm(
-      `Delete customer "${name}"? This cannot be undone.`
+      `Archive customer "${name}"? Customer will be moved to archive section.`
     );
     if (!ok) return;
 
     try {
       const res = await fetch(`/api/customers/${id}`, {
-        method: "DELETE",
+        method: "DELETE", // Still DELETE method, but now archives
       });
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error ?? "Failed to delete customer");
+        alert(data.error ?? "Failed to archive customer");
         return;
       }
 
+      // Remove from current view
       setCustomers((prev) => prev.filter((c) => c.id !== id));
+      alert("Customer archived successfully!");
     } catch (err) {
-      console.error("delete customer error", err);
-      alert("Unexpected error while deleting");
+      console.error("archive customer error", err);
+      alert("Unexpected error while archiving");
     }
   }
 
@@ -300,21 +306,29 @@ export default function CustomersPage() {
         {/* Card 2: table */}
         <div className="w-full rounded-2xl bg-slate-900/80 border border-slate-800 p-6 shadow-xl">
           <div className="flex flex-col gap-2 mb-4 md:flex-row md:items-center md:justify-between">
-            <h2 className="text-xl font-semibold">Recent customers</h2>
-            <input
-              type="text"
-              placeholder="Search name, phone, Aadhaar, email..."
-              className="w-full md:w-64 rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-xs"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <h2 className="text-xl font-semibold">Active Customers</h2>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Search name, phone, Aadhaar, email..."
+                className="w-full md:w-64 rounded-md bg-slate-950 border border-slate-700 px-3 py-2 text-xs"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <a
+                href="/archive"
+                className="rounded-md border border-amber-500/60 text-amber-300 px-3 py-2 text-xs hover:bg-amber-500/10 whitespace-nowrap"
+              >
+                View Archive
+              </a>
+            </div>
           </div>
 
           {customersLoading ? (
             <p className="text-sm text-slate-300">Loading...</p>
           ) : filteredCustomers.length === 0 ? (
             <p className="text-sm text-slate-300">
-              No customers match the current search.
+              No active customers match the current search.
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -364,10 +378,10 @@ export default function CustomersPage() {
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(c.id, c.name)}
-                          className="rounded-md border border-red-500/60 text-red-300 px-2 py-1 hover:bg-red-500/10"
+                          onClick={() => handleArchive(c.id, c.name)}
+                          className="rounded-md border border-amber-500/60 text-amber-300 px-2 py-1 hover:bg-amber-500/10"
                         >
-                          Delete
+                          Archive
                         </button>
                       </td>
                     </tr>

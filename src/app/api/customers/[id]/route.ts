@@ -63,7 +63,7 @@ export async function GET(
   const { data, error } = await supabase
     .from("customers")
     .select(
-      "id, name, phone, email, address, aadhaar_last4, created_at"
+      "id, name, phone, email, address, aadhaar_last4, created_at, is_archived, archived_at"
     )
     .eq("id", id)
     .single();
@@ -79,7 +79,7 @@ export async function GET(
   return NextResponse.json(data, { status: 200 });
 }
 
-// DELETE /api/customers/[id]
+// DELETE /api/customers/[id] - ARCHIVES customer (soft delete)
 export async function DELETE(
   _req: Request,
   context: { params: Promise<{ id: string }> }  // FIXED: Use Promise
@@ -96,7 +96,7 @@ export async function DELETE(
 
     const { id } = await context.params;  // FIXED: Await the Promise
 
-    console.log("=== DELETE ATTEMPT START ===");
+    console.log("=== ARCHIVE CUSTOMER ATTEMPT START ===");
     console.log("Customer ID:", id);
 
     if (!id) {
@@ -107,60 +107,36 @@ export async function DELETE(
       );
     }
 
-    // 1. First check if customer has any payments
-    console.log("Checking if customer has payments...");
-    const { data: payments, error: checkError } = await supabase
-      .from("payments")
-      .select("id")
-      .eq("customer_id", id) // Use your actual foreign key column name
-      .limit(1);
-
-    if (checkError) {
-      console.error("Error checking payments:", checkError);
-      return NextResponse.json(
-        { error: "Error checking customer's payments" },
-        { status: 500 }
-      );
-    }
-
-    // 2. If customer has payments, BLOCK deletion
-    if (payments && payments.length > 0) {
-      console.log("Customer has payments, blocking deletion");
-      return NextResponse.json(
-        { 
-          error: "Cannot delete customer with existing payments. " +
-                 "Please delete or reassign payments first."
-        },
-        { status: 400 } // 400 Bad Request (client error)
-      );
-    }
-
-    console.log("No payments found, deleting customer...");
-
-    // 3. Delete customer (only if no payments)
-    const { error: customerError } = await supabase
+    // Archive the customer (soft delete) instead of hard delete
+    const { error: archiveError } = await supabase
       .from("customers")
-      .delete()
+      .update({
+        is_archived: true,
+        archived_at: new Date().toISOString()
+      })
       .eq("id", id);
 
-    if (customerError) {
-      console.error("SUPABASE DELETE ERROR:", {
-        message: customerError.message,
-        details: customerError.details,
-        hint: customerError.hint,
-        code: customerError.code
+    if (archiveError) {
+      console.error("ARCHIVE CUSTOMER ERROR:", {
+        message: archiveError.message,
+        details: archiveError.details,
+        hint: archiveError.hint,
+        code: archiveError.code
       });
       return NextResponse.json(
-        { error: "Failed to delete customer: " + customerError.message },
+        { error: "Failed to archive customer: " + archiveError.message },
         { status: 500 }
       );
     }
 
-    console.log("=== DELETE SUCCESSFUL ===");
-    return NextResponse.json({ success: true }, { status: 200 });
+    console.log("=== CUSTOMER ARCHIVED SUCCESSFULLY ===");
+    return NextResponse.json({ 
+      success: true,
+      message: "Customer moved to archive" 
+    }, { status: 200 });
     
   } catch (err) {
-    console.error("UNEXPECTED DELETE ERROR:", err);
+    console.error("UNEXPECTED ARCHIVE ERROR:", err);
     return NextResponse.json(
       { error: "Unexpected server error: " + (err as Error).message },
       { status: 500 }

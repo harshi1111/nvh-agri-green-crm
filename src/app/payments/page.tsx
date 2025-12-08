@@ -136,15 +136,20 @@ export default function PaymentsPage() {
         customerArray = data.customers;
       }
       
-      const formattedCustomers = customerArray.map((c: any) => ({
-        id: c.id || "",
-        // Try different possible name fields
-        name: c.name || 
-              `${c.first_name || ""} ${c.last_name || ""}`.trim() || 
-              c.email || 
-              "Unknown Customer",
-        phone: c.phone || c.phone_number || c.mobile || null,
-      })).filter((c: Customer) => c.id); // Remove customers without ID
+      const formattedCustomers = customerArray
+        .map((c: any) => ({
+          id: c.id || "",
+          // Try different possible name fields
+          name: c.name || 
+                `${c.first_name || ""} ${c.last_name || ""}`.trim() || 
+                c.email || 
+                "Unknown Customer",
+          phone: c.phone || c.phone_number || c.mobile || null,
+          is_archived: c.is_archived || false, // Get archive status
+        }))
+        .filter((c: any) => 
+          c.id && !c.is_archived // CRITICAL: Filter out archived customers
+        ); // Remove customers without ID
       
       setCustomers(formattedCustomers);
     } catch (err) {

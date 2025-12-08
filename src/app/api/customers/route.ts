@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
         aadhaar_last4: aadhaarLast4,
         aadhaar_hash: aadhaarHash,
         consent_given: !!consentGiven,
+        is_archived: false, // Ensure new customers are not archived
       })
       .select()
       .single();
@@ -60,11 +61,14 @@ export async function GET(req: NextRequest) {
   const page = Number(searchParams.get("page") ?? "1");
   const pageSize = Number(searchParams.get("pageSize") ?? "20");
 
-  let query = supabase.from("customers").select("*", { count: "exact" });
+  let query = supabase
+    .from("customers")
+    .select("*", { count: "exact" })
+    .eq("is_archived", false); // CRITICAL: Exclude archived customers
 
   if (q.trim()) {
     query = query.or(
-      `name.ilike.%${q}%,phone.ilike.%${q}%,aadhaar_last4.ilike.%${q}%`
+      `name.ilike.%${q}%,phone.ilike.%${q}%,aadhaar_last4.ilike.%${q}%,email.ilike.%${q}%`
     );
   }
 
