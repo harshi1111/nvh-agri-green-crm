@@ -6,25 +6,27 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint"
+    
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.86.0",
-    "next": "15.1.5",  // Update to latest stable version
-    "react": "^19",    // Update React versions
-    "react-dom": "^19"
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.4",
+    "next": "^16.0.7",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^22",    // Update TypeScript types
+    "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@typescript-eslint/eslint-plugin": "^8",
-    "@typescript-eslint/parser": "^8",
+    "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
-    "eslint-config-next": "15.1.5",  // Match Next.js version
+    "eslint-config-next": "16.0.6",
     "tailwindcss": "^4",
-    "typescript": "^5.7"
+    "typescript": "^5"
   }
 }
