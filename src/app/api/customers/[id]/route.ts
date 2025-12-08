@@ -1,6 +1,13 @@
 // src/app/api/customers/[id]/route.ts
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+
+// === MODULE LEVEL DEBUGGING ===
+console.log("=== API ROUTE LOADING ===");
+console.log("SUPABASE_URL from env:", !!process.env.SUPABASE_URL);
+console.log("NEXT_PUBLIC_SUPABASE_URL from env:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log("SUPABASE_ANON_KEY from env:", !!process.env.SUPABASE_ANON_KEY);
+console.log("NEXT_PUBLIC_SUPABASE_ANON_KEY from env:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 // FIX: Use regular env vars (not NEXT_PUBLIC_) for API routes
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,19 +15,40 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUP
 
 // Log for debugging (remove in production)
 if (!supabaseUrl || !supabaseKey) {
-  console.error("Missing Supabase environment variables");
+  console.error("CRITICAL: Missing Supabase environment variables");
+  console.error("supabaseUrl:", supabaseUrl);
+  console.error("supabaseKey:", supabaseKey ? "Set (hidden)" : "Missing");
+} else {
+  console.log("Supabase credentials OK");
 }
 
-const supabase = createClient(
-  supabaseUrl!,
-  supabaseKey!
-);
+let supabase: SupabaseClient | null = null; // FIXED: Add type annotation
+try {
+  supabase = createClient(
+    supabaseUrl!,
+    supabaseKey!
+  );
+  console.log("Supabase client created successfully");
+} catch (err) {
+  console.error("FAILED to create Supabase client:", err);
+  supabase = null;
+}
+// === END DEBUGGING ===
 
 // GET /api/customers/[id]  -> used by your receipt page
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> }  // FIXED: Use Promise
 ) {
+  // Check if supabase client exists
+  if (!supabase) {
+    console.error("GET: No Supabase client available");
+    return NextResponse.json(
+      { error: "Server configuration error" },
+      { status: 500 }
+    );
+  }
+
   const { id } = await context.params;  // FIXED: Await the Promise
 
   console.log("GET request for customer ID:", id);
@@ -57,6 +85,15 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }  // FIXED: Use Promise
 ) {
   try {
+    // Check if supabase client exists
+    if (!supabase) {
+      console.error("DELETE: No Supabase client available");
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
     const { id } = await context.params;  // FIXED: Await the Promise
 
     console.log("=== DELETE ATTEMPT START ===");
@@ -108,6 +145,15 @@ export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }  // FIXED: Use Promise
 ) {
+  // Check if supabase client exists
+  if (!supabase) {
+    console.error("PUT: No Supabase client available");
+    return NextResponse.json(
+      { error: "Server configuration error" },
+      { status: 500 }
+    );
+  }
+
   const { id } = await context.params;  // FIXED: Await the Promise
 
   console.log("PUT request for customer ID:", id);
