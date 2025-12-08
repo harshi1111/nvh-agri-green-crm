@@ -7,7 +7,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  console.log("🔍 Current URL:", window.location.href);
+  console.log("🔍 URL Params:", new URLSearchParams(window.location.search).toString());
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);

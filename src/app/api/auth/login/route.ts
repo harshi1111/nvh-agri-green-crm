@@ -18,7 +18,6 @@ export async function POST(req: Request) {
     }
 
     console.log("LOGIN ATTEMPT:", { email, password });
-    console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -41,10 +40,37 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json(
+    // Create response with cookies
+    const response = NextResponse.json(
       { success: true, redirectTo: "/dashboard" },
       { status: 200 }
     );
+
+    // Set session cookies
+    response.cookies.set({
+      name: 'sb-access-token',
+      value: data.session.access_token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    });
+
+    response.cookies.set({
+      name: 'sb-refresh-token',
+      value: data.session.refresh_token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    });
+
+    console.log("Session cookies set for user:", data.user.email);
+
+    return response;
+
   } catch (err) {
     console.error("LOGIN_ERROR", err);
     return NextResponse.json(
@@ -52,4 +78,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}
