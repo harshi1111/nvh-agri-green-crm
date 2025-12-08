@@ -7,11 +7,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    console.log("🔍 Current URL:", window.location.href);
-    console.log("🔍 URL Params:", new URLSearchParams(window.location.search).toString());
+    setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    if (isClient) {
+      console.log("🔍 Current URL:", window.location.href);
+      console.log("🔍 URL Params:", new URLSearchParams(window.location.search).toString());
+    }
+  }, [isClient]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,12 +48,14 @@ export default function LoginPage() {
       } else {
         const redirectTo = (data.redirectTo as string) ?? "/customers";
         console.log("🔍 REDIRECTING TO:", redirectTo);
-        console.log("🔍 Current URL:", window.location.href);
         
-        // Try different redirect methods
-        setTimeout(() => {
-          window.location.assign(redirectTo);
-        }, 100);
+        if (isClient) {
+          console.log("🔍 Current URL:", window.location.href);
+          // Use Next.js router instead of window.location
+          setTimeout(() => {
+            window.location.assign(redirectTo);
+          }, 100);
+        }
       }
     } catch (err) {
       console.error("🔍 LOGIN ERROR:", err);
@@ -92,7 +101,7 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-
+ 
         {error && <p className="mt-4 text-sm text-red-300">{error}</p>}
       </div>
     </main>

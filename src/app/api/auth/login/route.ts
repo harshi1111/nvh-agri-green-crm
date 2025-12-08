@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +13,37 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("LOGIN ATTEMPT:", { email, password });
+    console.log("LOGIN ATTEMPT:", { email });
+
+    // Get cookie store
+    const cookieStore = await cookies();
+    
+    // Create server client with the SAME configuration as middleware
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // Use ANON key, not service role
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options: any) {
+            try {
+              cookieStore.set({ name, value, ...options });
+            } catch {
+              // Ignore errors in API routes
+            }
+          },
+          remove(name: string, options: any) {
+            try {
+              cookieStore.set({ name, value: "", ...options });
+            } catch {
+              // Ignore errors in API routes
+            }
+          },
+        },
+      }
+    );
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -40,36 +66,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create response with cookies
-    const response = NextResponse.json(
-      { success: true, redirectTo: "/dashboard" },
-      { status: 200 }
-    );
+    console.log("Login successful for:", data.user.email);
 
-    // Set session cookies
-    response.cookies.set({
-      name: 'sb-access-token',
-      value: data.session.access_token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+    // Return response - the supabase client already set cookies
+    return NextResponse.json({
+      success: true,
+      redirectTo: "/dashboard",
+      user: data.user
     });
-
-    response.cookies.set({
-      name: 'sb-refresh-token',
-      value: data.session.refresh_token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-    });
-
-    console.log("Session cookies set for user:", data.user.email);
-
-    return response;
 
   } catch (err) {
     console.error("LOGIN_ERROR", err);
