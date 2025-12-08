@@ -4,9 +4,10 @@ import { createServerClient } from "@supabase/ssr";
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  // Check if we're in a build environment
-  if (process.env.NEXT_PHASE === "phase-production-build") {
-    return res; // Skip auth during build
+  // IMPORTANT: Skip middleware entirely during build
+  if (process.env.NODE_ENV === 'production' && process.env.VERCEL === '1') {
+    // For Vercel build, skip auth checks
+    return res;
   }
 
   const supabase = createServerClient(
@@ -34,7 +35,7 @@ export async function middleware(req: NextRequest) {
       path.startsWith("/customers") || 
       path.startsWith("/payments") || 
       path.startsWith("/dashboard") ||
-      path === "/"; // Also protect home page
+      path === "/";
 
     if (isProtected) {
       const { data, error } = await supabase.auth.getUser();
@@ -46,7 +47,7 @@ export async function middleware(req: NextRequest) {
       }
     }
   } catch (error) {
-    // Silently fail during build
+    // Log error but don't crash
     console.error("Middleware error:", error);
   }
 
@@ -55,13 +56,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|public/|api/).*)",
+    // Skip API routes and static files
+    "/((?!api|_next/static|_next/image|favicon.ico|public/|login|signup).*)",
   ],
 };

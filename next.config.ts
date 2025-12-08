@@ -1,28 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* Add image configuration for production */
-  images: {
-    unoptimized: true,
+  output: 'standalone',
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
-  
-  /* Skip linting and type checking during build */
+  // Completely disable turbopack
   experimental: {
-    esmExternals: true, // This helps with external packages
-  },
-  
-  /* Add webpack config to handle html2canvas/jspdf during build */
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Exclude client-side libraries from server build
-      config.externals = [...(config.externals || []), 
-        'html2canvas', 
-        'jspdf',
-        'canvas'
-      ];
-    }
-    
-    return config;
+    turbo: false,
   },
 };
 
