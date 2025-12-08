@@ -20,13 +20,14 @@ const supabase = createClient(
   supabaseKey!
 );
 
-type Params = {
-  params: Promise<{ id: string }>;
-};
-
 // GET /api/customers/[id]  -> used by your receipt page
-export async function GET(_req: Request, context: Params) {
-  const { id } = await context.params;
+export async function GET(
+  _req: Request,
+  context: { params: { id: string } }  // FIXED: No Promise wrapper
+) {
+  const { id } = context.params;  // FIXED: No await needed
+
+  console.log("GET request for customer ID:", id);
 
   if (!id) {
     return NextResponse.json(
@@ -38,7 +39,6 @@ export async function GET(_req: Request, context: Params) {
   const { data, error } = await supabase
     .from("customers")
     .select(
-      // add or remove fields here (include age or date_of_birth when you add them)
       "id, name, phone, email, address, aadhaar_last4, created_at"
     )
     .eq("id", id)
@@ -56,9 +56,12 @@ export async function GET(_req: Request, context: Params) {
 }
 
 // DELETE /api/customers/[id]
-export async function DELETE(_req: Request, context: Params) {
+export async function DELETE(
+  _req: Request,
+  context: { params: { id: string } }  // FIXED: No Promise wrapper
+) {
   try {
-    const { id } = await context.params;
+    const { id } = context.params;  // FIXED: No await needed
 
     console.log("=== DELETE ATTEMPT START ===");
     console.log("Customer ID:", id);
@@ -105,8 +108,13 @@ export async function DELETE(_req: Request, context: Params) {
 }
 
 // PUT /api/customers/[id]
-export async function PUT(req: Request, context: Params) {
-  const { id } = await context.params;
+export async function PUT(
+  req: Request,
+  context: { params: { id: string } }  // FIXED: No Promise wrapper
+) {
+  const { id } = context.params;  // FIXED: No await needed
+
+  console.log("PUT request for customer ID:", id);
 
   if (!id) {
     return NextResponse.json(
