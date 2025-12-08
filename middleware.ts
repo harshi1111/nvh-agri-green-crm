@@ -26,7 +26,10 @@ export async function middleware(req: NextRequest) {
 
   const path = req.nextUrl.pathname;
   const isProtected =
-    path.startsWith("/customers") || path.startsWith("/payments");
+    path.startsWith("/customers") || 
+    path.startsWith("/payments") || 
+    path.startsWith("/dashboard");
+    
 
   if (isProtected && (error || !data?.user)) {
     const redirectUrl = new URL("/login", req.url);
