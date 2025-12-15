@@ -30,7 +30,7 @@ A **bare-bones CRM** I built for my family's vetiver business because:
 ## 🚀 "Deployment" (Fancy Word for Putting Online)
 1. Write code → 2. Push to GitHub → 3. Vercel does magic → 4. **It's online!**
    
-**Actual magic:** `git push` → 🪄 → https://nvh-agri-green-crm.vercel.app
+**Actual magic:** `git push` → 🪄 → https://nvh-agri-green-crm-go-go.vercel.app
 
 ## 📱 Mobile Experience
 ```typescript
