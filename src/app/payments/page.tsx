@@ -309,6 +309,38 @@ export default function PaymentsPage() {
     }
   }
 
+  // ADD THIS DELETE FUNCTION
+  async function handleDelete(paymentId: string, customerName: string) {
+    const payment = payments.find(p => p.id === paymentId);
+    const ok = window.confirm(
+      `Delete payment of ₹${payment?.amount} for "${customerName}"? This action cannot be undone.`
+    );
+    
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`/api/payments/${paymentId}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error ?? "Failed to delete payment");
+        return;
+      }
+
+      // Remove from local state
+      setPayments(prev => prev.filter(p => p.id !== paymentId));
+      setRawPayments(prev => prev.filter(p => p.id !== paymentId));
+      setMessage(`Payment deleted successfully`);
+      
+    } catch (err) {
+      console.error("delete payment error", err);
+      alert("Unexpected error while deleting payment");
+    }
+  }
+
   const filteredPayments = useMemo(() => {
     const q = search.trim().toLowerCase();
     const now = new Date();
@@ -702,7 +734,7 @@ export default function PaymentsPage() {
                     <th className="py-2 px-4 text-left text-slate-300">Mode</th>
                     <th className="py-2 px-4 text-left text-slate-300">Cheque/Bank Details</th>
                     <th className="py-2 px-4 text-left text-slate-300">Date</th>
-                    <th className="py-2 px-4 text-left text-slate-300">Receipt</th>
+                    <th className="py-2 px-4 text-left text-slate-300">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -753,10 +785,16 @@ export default function PaymentsPage() {
                       <td className="py-2 px-4 text-xs">
                         <a
                           href={`/receipt/${p.id}`}
-                          className="text-emerald-400 hover:text-emerald-300 underline"
+                          className="text-emerald-400 hover:text-emerald-300 underline mr-3"
                         >
                           View
                         </a>
+                        <button
+                          onClick={() => handleDelete(p.id, p.customer_name || 'payment')}
+                          className="text-red-400 hover:text-red-300 underline"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}
