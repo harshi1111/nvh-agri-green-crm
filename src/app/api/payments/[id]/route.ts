@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+// GET single payment
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params; // <-- FIXED: Use params directly, not context.params
+    const { id } = await params;
     
     console.log(`🔍 GET /api/payments/${id} - Fetching single payment`);
     
@@ -17,7 +18,6 @@ export async function GET(
       );
     }
 
-    // Fetch payment WITH customer details
     const { data, error } = await supabase
       .from("payments")
       .select(`
@@ -48,7 +48,6 @@ export async function GET(
       customer: data.customers?.name || "No customer"
     });
 
-    // Format response for receipt page
     const response = {
       id: data.id,
       customer_id: data.customer_id,
@@ -74,6 +73,51 @@ export async function GET(
 
   } catch (error) {
     console.error("💥 Error in GET /api/payments/[id]:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE payment
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    
+    console.log(`🗑️ DELETE /api/payments/${id} - Deleting payment`);
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: "Payment ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("payments")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("❌ Error deleting payment:", error);
+      return NextResponse.json(
+        { error: "Failed to delete payment" },
+        { status: 500 }
+      );
+    }
+
+    console.log("✅ Payment deleted successfully:", id);
+    return NextResponse.json(
+      { success: true, message: "Payment deleted successfully" },
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error("💥 Error in DELETE /api/payments/[id]:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
